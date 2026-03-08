@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Социальные отношения – Карточки</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --card-front-bg: #ffffff;
+      --card-back-bg: #eff6ff;
+      --border-color: #e2e8f0;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #10b981;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0f172a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --card-front-bg: #1e293b;
+      --card-back-bg: #172554;
+      --border-color: #334155;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --success: #34d399;
+      --shadow-color: rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; }
+
+    .app-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-color) 0%, var(--card-front-bg) 100%);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+    }
+
+    /* Header */
+    .header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .header-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+    .header-subtitle { font-size: 0.875rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Typography & Icons */
+    .icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+    .icon-sm { width: 1rem; height: 1rem; }
+    .icon-lg { width: 1.75rem; height: 1.75rem; }
+    .text-success { color: var(--success); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+      background: var(--card-front-bg);
+      color: var(--text-main);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-icon { padding: 0.5rem; border-radius: 0.5rem; }
+    
+    /* Синяя кнопка для полноэкранного режима */
+    .btn.btn-blue {
+      background-color: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .btn.btn-blue:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    /* Horizontal Scroll Tabs */
+    .tabs-wrapper {
+      width: 100%;
+      max-width: 800px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin-bottom: 2rem;
+    }
+    .tabs-wrapper::-webkit-scrollbar { display: none; }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .tab {
+      white-space: nowrap;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      background: var(--card-front-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Status text */
+    .status-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Card */
+    .card-wrapper {
+      width: 100%;
+      max-width: 600px;
+      height: 320px;
+      perspective: 1000px;
+      cursor: pointer;
+      margin-bottom: 2.5rem;
+    }
+    @media (min-width: 768px) { .card-wrapper { height: 384px; } }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+      box-shadow: 0 10px 25px var(--shadow-color);
+      border-radius: 1rem;
+    }
+    .card-wrapper.flipped .card-inner { transform: rotateX(180deg); }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1.5rem;
+      border-radius: 1rem;
+      border-top: 4px solid;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+    }
+
+    .card-face::-webkit-scrollbar { width: 6px; }
+    .card-face::-webkit-scrollbar-track { background: transparent; }
+    .card-face::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+
+    .card-front {
+      background: var(--card-front-bg);
+      border-top-color: var(--accent);
+    }
+    .card-back {
+      background: var(--card-back-bg);
+      border-top-color: var(--success);
+      transform: rotateX(180deg);
+    }
+
+    .card-label {
+      position: absolute;
+      top: 1.25rem;
+      left: 1.25rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card-front .card-label { color: var(--accent); }
+    .card-back .card-label { color: var(--success); }
+
+    .card-content { 
+      font-size: 1.25rem; 
+      font-weight: 600; 
+      line-height: 1.5; 
+      width: 100%;
+      margin: 0;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      transition: font-size 0.2s ease;
+    }
+    @media (min-width: 768px) { .card-content { font-size: 1.5rem; } }
+    .card-back .card-content { font-weight: 500; color: var(--text-main); }
+
+    .card-hint {
+      position: absolute;
+      bottom: 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      animation: pulse 2s infinite;
+    }
+
+    /* Лаконичная подсказка с номером темы */
+    .card-topic-hint {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-color);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) { .controls { gap: 1.5rem; } }
+
+    .btn-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: var(--card-front-bg);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-control:hover { transform: scale(1.05); border-color: var(--accent); }
+
+    .btn-nav { width: 3rem; height: 3rem; }
+    .btn-action { width: 3rem; height: 3rem; color: var(--text-muted); }
+    .btn-action.active { background: var(--success); color: #fff; border-color: var(--success); }
+
+    .btn-main {
+      width: 3.5rem; height: 3.5rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 10px var(--shadow-color);
+    }
+    .btn-main:hover { background: var(--accent-hover); }
+    @media (min-width: 768px) {
+      .btn-nav, .btn-action { width: 3.5rem; height: 3.5rem; }
+      .btn-main { width: 4rem; height: 4rem; }
+    }
+
+    .empty-state {
+      padding: 3rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Библиотека inline SVG-иконок -->
+  <svg style="display: none;">
+    <defs>
+      <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </symbol>
+      <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </symbol>
+      <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </symbol>
+      <symbol id="icon-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 3 21 3 21 8"></polyline>
+        <line x1="4" y1="20" x2="21" y2="3"></line>
+        <polyline points="21 16 21 21 16 21"></polyline>
+        <line x1="15" y1="15" x2="21" y2="21"></line>
+        <line x1="4" y1="4" x2="9" y2="9"></line>
+      </symbol>
+      <symbol id="icon-prev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </symbol>
+      <symbol id="icon-next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </symbol>
+      <symbol id="icon-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </symbol>
+      <symbol id="icon-maximize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+      </symbol>
+      <symbol id="icon-minimize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="app-container">
+    <!-- Шапка -->
+    <div class="header">
+      <div>
+        <h1 class="header-title">Раздел 2. Социальные отношения</h1>
+        <p class="header-subtitle" id="header-subtitle">
+          <svg class="icon icon-sm text-success"><use href="#icon-check-circle"></use></svg>
+          <span id="file-status-text">Встроена полная база: раздел 2 (81 термин)</span>
+        </p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-icon" id="btn-theme" title="Переключить тему">
+          <svg class="icon"><use id="theme-icon-use" href="#icon-moon"></use></svg>
+        </button>
+        <!-- Синяя кнопка для перехода в полноэкранный режим -->
+        <button class="btn btn-icon btn-blue" id="btn-fullscreen" title="Полноэкранный режим">
+          <svg class="icon"><use id="fullscreen-icon-use" href="#icon-maximize"></use></svg>
+        </button>
+        <button class="btn" id="btn-upload">
+          <svg class="icon icon-sm"><use href="#icon-upload"></use></svg>
+          Загрузить
+        </button>
+        <input type="file" accept=".csv" id="file-input" style="display: none;" />
+      </div>
+    </div>
+
+    <!-- Навигация (вкладки) -->
+    <div class="tabs-wrapper">
+      <div class="tabs" id="tabs-container">
+        <button class="tab active" data-tab="all" id="tab-all">Все термины (0)</button>
+        <button class="tab" data-tab="learning" id="tab-learning">Осталось выучить (0)</button>
+        <button class="tab" data-tab="learned" id="tab-learned">Выученные (0)</button>
+      </div>
+    </div>
+
+    <!-- Карточка и элементы управления -->
+    <div id="main-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+      <div class="status-text" id="status-text">Карточка 1 из 0</div>
+
+      <div class="card-wrapper" id="card-wrapper">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <span class="card-label">Вопрос</span>
+            <h2 class="card-content" id="card-question"></h2>
+            <p class="card-hint">Нажмите, чтобы перевернуть</p>
+          </div>
+          <div class="card-face card-back">
+            <span class="card-label">Ответ</span>
+            <p class="card-content" id="card-answer"></p>
+            <div class="card-topic-hint" id="card-topic-hint"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" id="controls">
+        <button class="btn-control btn-action" id="btn-shuffle" title="Перемешать все">
+          <svg class="icon"><use href="#icon-shuffle"></use></svg>
+        </button>
+        <button class="btn-control btn-nav" id="btn-prev" title="Предыдущая">
+          <svg class="icon"><use href="#icon-prev"></use></svg>
+        </button>
+        <button class="btn-control btn-main" id="btn-next" title="Следующая">
+          <svg class="icon icon-lg"><use href="#icon-next"></use></svg>
+        </button>
+        <button class="btn-control btn-action" id="btn-check" title="Отметить как выученное">
+          <svg class="icon"><use href="#icon-check"></use></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Пустое состояние -->
+    <div class="empty-state" id="empty-state">
+      В этой категории пока нет карточек.
+    </div>
+  </div>
+
+  <script>
+    // База карточек по разделу 2 (81 термин)
+    const defaultCards = [
+      { id: '1', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Что такое мировоззрение?', answer: 'Это целостное представление человека об обществе, природе и своем месте в мире.' },
+      { id: '2', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Назовите основные компоненты мировоззрения.', answer: 'К ним относятся: знания, ценности, убеждения, идеалы и нормы.' },
+      { id: '3', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Какова главная функция мировоззрения?', answer: 'Оно выступает жизненным ориентиром, задает цели и формирует систему ценностей.' },
+      { id: '4', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Что такое обыденное (житейское) мировоззрение?', answer: 'Это тип мировоззрения, основанный на личном практическом опыте и здравом смысле.' },
+      { id: '5', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Чем отличается теоретическое мировоззрение?', answer: 'Оно опирается на логику, научные знания и глубокий интеллектуальный анализ.' },
+      { id: '6', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'В чем особенность мифологического мировоззрения?', answer: 'Это объяснение устройства мира через предания, сказания и веру в фантастических существ.' },
+      { id: '7', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'На чем основано религиозное мировоззрение?', answer: 'На вере в существование сверхъестественных сил и строгом соблюдении догматов.' },
+      { id: '8', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Какова главная черта научного мировоззрения?', answer: 'Строгая опора на факты, доказательность, объективность и проверяемость.' },
+      { id: '9', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Что свойственно философскому мировоззрению?', answer: 'Рационально-теоретическое осмысление самых общих законов развития природы, общества и мышления.' },
+      { id: '10', topic: 'Тема 1. МИРОВОЗЗРЕНИЕ', question: 'Что такое менталитет?', answer: 'Это совокупность умственных, эмоциональных и культурных особенностей, присущих определенной группе.' },
+      { id: '11', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Что такое социальная группа?', answer: 'Совокупность людей, имеющих общий социально значимый признак, общие интересы и ценности.' },
+      { id: '12', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Перечислите основные признаки социальной группы.', answer: 'К ним относятся: взаимодействие членов, признание своей принадлежности к группе и признание этого другими.' },
+      { id: '13', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Что такое первичная социальная группа?', answer: 'Это небольшая группа, где отношения носят тесный, эмоциональный и межличностный характер (например, семья).' },
+      { id: '14', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'В чем специфика вторичной социальной группы?', answer: 'Отношения в ней формальны и направлены на достижение конкретной цели (например, коллектив на работе).' },
+      { id: '15', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Чем формальная группа отличается от неформальной?', answer: 'Формальная создается на базе официальных документов, а неформальная – на основе личных симпатий.' },
+      { id: '16', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Что такое номинальная социальная группа?', answer: 'Искусственно выделенная для статистического учета категория людей (например, пассажиры поездов).' },
+      { id: '17', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Что такое реальная социальная группа?', answer: 'Объединение людей, осознающих свою принадлежность к группе и реально взаимодействующих между собой.' },
+      { id: '18', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Кто такая молодежь с точки зрения социологии?', answer: 'Социально-демографическая группа, выделяемая на основе возрастных характеристик и особенностей социального положения.' },
+      { id: '19', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Назовите типичные черты молодежи.', answer: 'Переходность положения, высокий уровень социальной мобильности, активный поиск своего места в жизни.' },
+      { id: '20', topic: 'Тема 2. СОЦИАЛЬНЫЕ ГРУППЫ', question: 'Что такое молодежная субкультура?', answer: 'Культура молодого поколения, отличающаяся своими ценностями, сленгом, модой и стилем поведения.' },
+      { id: '21', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Что такое социальный конфликт?', answer: 'Это высшая стадия развития противоречий в отношениях между людьми, социальными группами или обществом в целом.' },
+      { id: '22', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Кого называют субъектами социального конфликта?', answer: 'Непосредственных участников (индивиды или группы), между которыми возникло столкновение.' },
+      { id: '23', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Что такое предмет социального конфликта?', answer: 'Конкретное материальное или духовное благо, из-за которого началось противостояние.' },
+      { id: '24', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Чем повод конфликта отличается от причины?', answer: 'Повод – это конкретное событие (искра), а причина – глубокие объективные противоречия.' },
+      { id: '25', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Назовите основные стадии социального конфликта.', answer: 'Предконфликтная стадия, сам конфликт и разрешение конфликта.' },
+      { id: '26', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'В чем заключается разрешение конфликта путем компромисса?', answer: 'В решении проблемы через взаимные уступки сторон.' },
+      { id: '27', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Что такое переговоры как способ разрешения конфликта?', answer: 'Мирное обсуждение проблемы сторонами для поиска взаимоприемлемого решения.' },
+      { id: '28', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'В чем суть посредничества (медиации)?', answer: 'Привлечение третьей, нейтральной стороны для помощи в разрешении спора без вынесения обязательного решения.' },
+      { id: '29', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Что такое арбитраж в социальном конфликте?', answer: 'Обращение к специальному органу власти, решение которого обязательно для исполнения всеми сторонами.' },
+      { id: '30', topic: 'Тема 3. СОЦИАЛЬНЫЙ КОНФЛИКТ', question: 'Какие функции может выполнять социальный конфликт?', answer: 'Позитивные (обновление, выявление проблем) и негативные (разрушение, стресс).' },
+      { id: '31', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что такое свобода?', answer: 'Способность человека действовать в соответствии со своими интересами, опираясь на познание объективной необходимости.' },
+      { id: '32', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Может ли свобода в обществе быть абсолютной?', answer: 'Нет, так как абсолютная свобода одного человека неминуемо нарушает свободу других людей.' },
+      { id: '33', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что такое необходимость?', answer: 'Объективные законы природы и общества, которые не зависят от воли человека, но определяют рамки его свободы.' },
+      { id: '34', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Как соотносятся свобода и ответственность?', answer: 'Свобода – это всегда выбор, а за последствия своего выбора человек несет полную ответственность.' },
+      { id: '35', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что такое фатализм?', answer: 'Мировоззрение, утверждающее, что все события в мире предопределены судьбой и человек не властен над ними.' },
+      { id: '36', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что такое волюнтаризм?', answer: 'Мировоззрение, абсолютизирующее свободу воли человека и игнорирующее объективные законы и необходимость.' },
+      { id: '37', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что такое социальная ответственность?', answer: 'Осознание человеком последствий своих поступков для общества и готовность отвечать за них.' },
+      { id: '38', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Какие виды ответственности существуют?', answer: 'Юридическая, моральная, политическая, дисциплинарная и другие.' },
+      { id: '39', topic: 'Тема 4. СВОБОДА И ОТВЕТСТВЕННОСТЬ', question: 'Что является главным внутренним регулятором моральной ответственности?', answer: 'Совесть человека.' },
+      { id: '40', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое отклоняющееся (девиантное) поведение?', answer: 'Это поведение индивида или группы, которое не соответствует общепринятым социальным нормам.' },
+      { id: '41', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Всегда ли отклоняющееся поведение носит негативный характер?', answer: 'Нет, оно может быть позитивным: героизм, гениальность, сверхтрудолюбие.' },
+      { id: '42', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Приведите примеры негативного девиантного поведения.', answer: 'К ним относятся: алкоголизм, наркомания, хулиганство, игромания.' },
+      { id: '43', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое делинквентное поведение?', answer: 'Крайняя форма девиантного поведения, представляющая собой нарушение норм права (преступность).' },
+      { id: '44', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Назовите основные причины девиантного поведения.', answer: 'Социальное неравенство, влияние маргинальных групп, кризисы в обществе и семье.' },
+      { id: '45', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое социальный контроль?', answer: 'Механизм регуляции отношений индивида и общества с целью укрепления порядка и стабильности.' },
+      { id: '46', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Из каких двух основных элементов состоит социальный контроль?', answer: 'Из социальных норм и социальных санкций.' },
+      { id: '47', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое социальная норма?', answer: 'Установленное в обществе правило или стандарт поведения, регулирующий отношения между людьми.' },
+      { id: '48', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'На какие два основных вида делятся социальные санкции?', answer: 'На формальные (от официальных организаций) и неформальные (от социального окружения).' },
+      { id: '49', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Приведите примеры позитивных и негативных санкций.', answer: 'Позитивные: премия, похвала. Негативные: штраф, бойкот.' },
+      { id: '50', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое социальный статус?', answer: 'Положение человека в обществе, определяющее его права, обязанности и привилегии.' },
+      { id: '51', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое предписанный социальный статус?', answer: 'Статус, данный человеку от рождения или независимо от его воли (пол, возраст, национальность).' },
+      { id: '52', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое достигнутый социальный статус?', answer: 'Статус, приобретенный человеком благодаря его собственным усилиям (образование, профессия).' },
+      { id: '53', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое статусный набор?', answer: 'Совокупность всех социальных статусов, которыми одновременно обладает один конкретный человек.' },
+      { id: '54', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое социальная роль?', answer: 'Ожидаемая модель поведения, которую общество требует от человека с определенным социальным статусом.' },
+      { id: '55', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Чем социальный статус отличается от социальной роли?', answer: 'Статус – это положение (кем человек является), а роль – это поведение (что человек делает).' },
+      { id: '56', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое ролевой конфликт?', answer: 'Ситуация, когда требования различных социальных ролей одного человека противоречат друг другу.' },
+      { id: '57', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое престиж в социологии?', answer: 'Оценка обществом значимости тех или иных позиций, занимаемых индивидом (например, престиж профессии).' },
+      { id: '58', topic: 'Тема 6. СОЦИАЛЬНАЯ РОЛЬ И СТАТУС', question: 'Что такое авторитет?', answer: 'Степень признания обществом личных и деловых качеств конкретного человека.' },
+      { id: '59', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Что такое социальная стратификация?', answer: 'Это разделение общества на расположенные в иерархическом порядке слои (страты).' },
+      { id: '60', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Назовите основные критерии социальной стратификации в современном обществе.', answer: 'К ним относят: уровень дохода, объем власти, уровень образования и престиж профессии.' },
+      { id: '61', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Перечислите исторические типы социальной стратификации.', answer: 'Рабство, касты, сословия и классы.' },
+      { id: '62', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'В чем суть классовой системы стратификации?', answer: 'Принадлежность к страте определяется отношением к собственности и доходом (открытая система).' },
+      { id: '63', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Что такое социальная мобильность?', answer: 'Любые изменения в социальном положении индивида или группы, переход из одной страты в другую.' },
+      { id: '64', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Что такое вертикальная социальная мобильность?', answer: 'Перемещение индивида вверх (восходящая) или вниз (нисходящая) по социальной иерархии.' },
+      { id: '65', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Что такое горизонтальная социальная мобильность?', answer: 'Переход человека в другую группу без изменения уровня его социального статуса.' },
+      { id: '66', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'В чем отличие межпоколенной мобильности от внутрипоколенной?', answer: 'Межпоколенная: дети меняют статус по сравнению с родителями. Внутрипоколенная: человек меняет статус в течение жизни.' },
+      { id: '67', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Что такое «социальные лифты» (каналы социальной мобильности)?', answer: 'Это пути, по которым происходит перемещение людей из одних социальных групп в другие.' },
+      { id: '68', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Назовите основные социальные лифты современного общества.', answer: 'К ним относятся: образование, армия, бизнес, церковь, политика, брак.' },
+      { id: '69', topic: 'Тема 7. СОЦИАЛЬНАЯ МОБИЛЬНОСТЬ И СТРАТИФИКАЦИЯ', question: 'Кто такие маргиналы?', answer: 'Это люди, утратившие свой прежний социальный статус, но не адаптировавшиеся в новой социальной среде.' },
+      { id: '70', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что такое семья как малая социальная группа?', answer: 'Объединение людей, связанных кровным родством или браком, общностью быта и взаимной ответственностью.' },
+      { id: '71', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что такое семья как социальный институт?', answer: 'Комплекс социальных норм, образцов поведения, прав и обязанностей, регулирующих отношения супругов, родителей и детей.' },
+      { id: '72', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'В чем заключается репродуктивная функция семьи?', answer: 'В биологическом воспроизводстве населения и продолжении человеческого рода.' },
+      { id: '73', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'В чем суть воспитательной функции семьи?', answer: 'В первичной социализации детей, передаче им моральных норм, ценностей и жизненного опыта.' },
+      { id: '74', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'В чем проявляется экономическая (хозяйственно-бытовая) функция семьи?', answer: 'В ведении совместного хозяйства и финансовой поддержке всех членов семьи.' },
+      { id: '75', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Чем нуклеарная семья отличается от расширенной (многопоколенной)?', answer: 'Нуклеарная состоит только из супругов и детей, расширенная включает и других родственников (например, бабушек).' },
+      { id: '76', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Какова особенность патриархальной (традиционной) семьи?', answer: 'Главенство мужчины, жесткое разделение обязанностей на мужские и женские, экономическая зависимость женщины.' },
+      { id: '77', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что характерно для партнерской (эгалитарной) семьи?', answer: 'Равноправие супругов, совместное принятие решений и справедливое распределение бытовых обязанностей.' },
+      { id: '78', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что такое брак?', answer: 'Исторически обусловленная, санкционированная и регулируемая обществом форма отношений между мужчиной и женщиной.' },
+      { id: '79', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Назовите основные условия заключения брака в РФ.', answer: 'Взаимное добровольное согласие сторон и достижение ими брачного возраста.' },
+      { id: '80', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Перечислите основные обстоятельства, препятствующие заключению брака.', answer: 'Наличие другого нерасторгнутого брака, близкое кровное родство, недееспособность вследствие психического расстройства.' },
+      { id: '81', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что такое фактический (сожительство) брак?', answer: 'Длительное совместное проживание мужчины и женщины без официальной регистрации отношений в ЗАГС.' }
+    ];
+
+    // Состояние приложения
+    let cards = [...defaultCards];
+    let learnedIds = new Set();
+    let activeTab = 'all';
+    let currentIndex = 0;
+    let isFlipped = false;
+    let theme = 'light';
+
+    // DOM-элементы
+    const els = {
+      cardWrapper: document.getElementById('card-wrapper'),
+      cardQuestion: document.getElementById('card-question'),
+      cardAnswer: document.getElementById('card-answer'),
+      cardTopicHint: document.getElementById('card-topic-hint'),
+      tabAll: document.getElementById('tab-all'),
+      tabLearning: document.getElementById('tab-learning'),
+      tabLearned: document.getElementById('tab-learned'),
+      statusText: document.getElementById('status-text'),
+      btnCheck: document.getElementById('btn-check'),
+      themeIconUse: document.getElementById('theme-icon-use'),
+      btnTheme: document.getElementById('btn-theme'),
+      btnFullscreen: document.getElementById('btn-fullscreen'),
+      fullscreenIconUse: document.getElementById('fullscreen-icon-use'),
+      fileStatusText: document.getElementById('file-status-text'),
+      fileInput: document.getElementById('file-input'),
+      btnUpload: document.getElementById('btn-upload'),
+      emptyState: document.getElementById('empty-state'),
+      mainContent: document.getElementById('main-content'),
+      btnNext: document.getElementById('btn-next'),
+      btnPrev: document.getElementById('btn-prev'),
+      btnShuffle: document.getElementById('btn-shuffle')
+    };
+
+    // Функция масштабирования текста под размер карточки
+    function scaleTextToFit() {
+      requestAnimationFrame(() => {
+        els.cardQuestion.style.fontSize = '';
+        els.cardAnswer.style.fontSize = '';
+
+        const frontFace = document.querySelector('.card-front');
+        const backFace = document.querySelector('.card-back');
+
+        const fitText = (container, textElement) => {
+          let fontSize = parseFloat(window.getComputedStyle(textElement).fontSize);
+          const minFontSize = 14; 
+
+          while (container.scrollHeight > container.clientHeight && fontSize > minFontSize) {
+            fontSize -= 0.5;
+            textElement.style.fontSize = fontSize + 'px';
+          }
+        };
+
+        fitText(frontFace, els.cardQuestion);
+        fitText(backFace, els.cardAnswer);
+      });
+    }
+
+    window.addEventListener('resize', scaleTextToFit);
+
+    // Фильтрация
+    function getFilteredCards() {
+      return cards.filter(card => {
+        if (activeTab === 'learned') return learnedIds.has(card.id);
+        if (activeTab === 'learning') return !learnedIds.has(card.id);
+        return true;
+      });
+    }
+
+    // Обновление интерфейса
+    function updateUI() {
+      els.tabAll.textContent = `Все термины (${cards.length})`;
+      els.tabLearning.textContent = `Осталось выучить (${cards.length - learnedIds.size})`;
+      els.tabLearned.textContent = `Выученные (${learnedIds.size})`;
+
+      const filtered = getFilteredCards();
+
+      if (filtered.length === 0) {
+        els.mainContent.style.display = 'none';
+        els.emptyState.style.display = 'block';
+      } else {
+        els.mainContent.style.display = 'flex';
+        els.emptyState.style.display = 'none';
+
+        if (currentIndex >= filtered.length) currentIndex = 0;
+
+        const currentCard = filtered[currentIndex];
+        els.cardQuestion.textContent = currentCard.question;
+        els.cardAnswer.textContent = currentCard.answer;
+        els.statusText.textContent = `Карточка ${currentIndex + 1} из ${filtered.length}`;
+
+        // Логика лаконичной подсказки
+        if (currentCard.topic) {
+          // Ищем совпадение вида "Тема 1."
+          const match = currentCard.topic.match(/^(Тема\s*\d+\.?)/i);
+          const shortTopic = match ? match[1] : currentCard.topic;
+          
+          els.cardTopicHint.innerHTML = `<svg class="icon icon-sm"><use href="#icon-book"></use></svg> <span>${shortTopic}</span>`;
+          els.cardTopicHint.style.display = 'flex';
+        } else {
+          els.cardTopicHint.style.display = 'none';
+        }
+
+        if (learnedIds.has(currentCard.id)) {
+          els.btnCheck.classList.add('active');
+          els.btnCheck.title = 'Убрать из выученных';
+        } else {
+          els.btnCheck.classList.remove('active');
+          els.btnCheck.title = 'Отметить как выученное';
+        }
+
+        scaleTextToFit();
+      }
+    }
+
+    // Обработчики вкладок
+    function switchTab(tabId) {
+      activeTab = tabId;
+      currentIndex = 0;
+      isFlipped = false;
+      els.cardWrapper.classList.remove('flipped');
+      
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+      
+      updateUI();
+    }
+
+    els.tabAll.addEventListener('click', () => switchTab('all'));
+    els.tabLearning.addEventListener('click', () => switchTab('learning'));
+    els.tabLearned.addEventListener('click', () => switchTab('learned'));
+
+    // Переворот карточки
+    els.cardWrapper.addEventListener('click', () => {
+      isFlipped = !isFlipped;
+      els.cardWrapper.classList.toggle('flipped', isFlipped);
+    });
+
+    // Навигация
+    els.btnNext.addEventListener('click', () => {
+      const filtered = getFilteredCards();
+      if (filtered.length <= 1) return;
+      isFlipped = false;
+      els.cardWrapper.classList.remove('flipped');
+      setTimeout(() => {
+        currentIndex = (currentIndex + 1) % filtered.length;
+        updateUI();
+      }, 150);
+    });
+
+    els.btnPrev.addEventListener('click', () => {
+      const filtered = getFilteredCards();
+      if (filtered.length <= 1) return;
+      isFlipped = false;
+      els.cardWrapper.classList.remove('flipped');
+      setTimeout(() => {
+        currentIndex = (currentIndex - 1 + filtered.length) % filtered.length;
+        updateUI();
+      }, 150);
+    });
+
+    els.btnShuffle.addEventListener('click', () => {
+      const filtered = getFilteredCards();
+      if (filtered.length <= 1) return;
+      isFlipped = false;
+      els.cardWrapper.classList.remove('flipped');
+      setTimeout(() => {
+        cards.sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+        updateUI();
+      }, 150);
+    });
+
+    els.btnCheck.addEventListener('click', () => {
+      const filtered = getFilteredCards();
+      if (filtered.length === 0) return;
+      const currentCard = filtered[currentIndex];
+      
+      if (learnedIds.has(currentCard.id)) {
+        learnedIds.delete(currentCard.id);
+      } else {
+        learnedIds.add(currentCard.id);
+      }
+      updateUI();
+    });
+
+    // Темная тема
+    els.btnTheme.addEventListener('click', () => {
+      theme = theme === 'light' ? 'dark' : 'light';
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        els.themeIconUse.setAttribute('href', '#icon-sun');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        els.themeIconUse.setAttribute('href', '#icon-moon');
+      }
+    });
+
+    // Полноэкранный режим
+    function toggleFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    els.btnFullscreen.addEventListener('click', toggleFullscreen);
+
+    function updateFullscreenIcon() {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        els.fullscreenIconUse.setAttribute('href', '#icon-minimize');
+      } else {
+        els.fullscreenIconUse.setAttribute('href', '#icon-maximize');
+      }
+    }
+    
+    document.addEventListener('fullscreenchange', updateFullscreenIcon);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+
+    // Загрузка файла
+    els.btnUpload.addEventListener('click', () => els.fileInput.click());
+    
+    els.fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        const parsed = parseCSV(text);
+        if (parsed.length > 0) {
+          cards = parsed;
+          learnedIds.clear();
+          currentIndex = 0;
+          isFlipped = false;
+          els.cardWrapper.classList.remove('flipped');
+          els.fileStatusText.textContent = `Загружен файл: ${file.name}`;
+          updateUI();
+        } else {
+          alert('Не удалось распознать карточки. Убедитесь, что формат правильный.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function parseCSV(text) {
+      const result = [];
+      let row = [];
+      let inQuotes = false;
+      let currentVal = '';
+      
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (inQuotes) {
+          if (char === '"' && text[i + 1] === '"') {
+            currentVal += '"';
+            i++;
+          } else if (char === '"') {
+            inQuotes = false;
+          } else {
+            currentVal += char;
+          }
+        } else {
+          if (char === '"') {
+            inQuotes = true;
+          } else if (char === ',') {
+            row.push(currentVal.trim());
+            currentVal = '';
+          } else if (char === '\n' || char === '\r') {
+            row.push(currentVal.trim());
+            if (row.length >= 2 && row[0] && row[1]) {
+              result.push({ 
+                id: Date.now() + Math.random().toString(), 
+                question: row[0], 
+                answer: row[1],
+                topic: row[2] ? row[2] : '' 
+              });
+            }
+            row = [];
+            currentVal = '';
+            if (char === '\r' && text[i + 1] === '\n') i++;
+          } else {
+            currentVal += char;
+          }
+        }
+      }
+      if (currentVal || row.length > 0) {
+        row.push(currentVal.trim());
+        if (row.length >= 2 && row[0] && row[1]) {
+          result.push({ 
+            id: Date.now() + Math.random().toString(), 
+            question: row[0], 
+            answer: row[1],
+            topic: row[2] ? row[2] : ''
+          });
+        }
+      }
+      return result;
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
