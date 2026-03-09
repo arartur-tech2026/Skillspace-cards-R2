@@ -90,7 +90,7 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      gap: 3rem;
+      gap: 1.5rem;
       transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     [data-theme="dark"] .start-screen-overlay {
@@ -103,7 +103,7 @@
     }
     
     .start-title {
-      font-size: 2rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #1e293b;
       text-align: center;
@@ -112,16 +112,17 @@
     }
     @media (min-width: 768px) {
       .start-title { font-size: 3rem; }
+      .start-screen-overlay { gap: 3rem; }
     }
     [data-theme="dark"] .start-title {
       color: #f8fafc;
     }
 
     .btn-start {
-      font-size: 1.75rem;
+      font-size: 1rem;
       font-weight: 800;
-      padding: 1.5rem 4rem;
-      border-radius: 1.5rem;
+      padding: 0.8rem 2.5rem;
+      border-radius: 1rem;
       background: var(--accent);
       color: #ffffff;
       border: none;
@@ -132,6 +133,13 @@
       letter-spacing: 0.1em;
       animation: pulse-start 2s infinite;
       -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 768px) {
+      .btn-start {
+        font-size: 1.75rem;
+        padding: 1.5rem 4rem;
+        border-radius: 1.5rem;
+      }
     }
     .btn-start:hover {
       transform: scale(1.05) translateY(-5px);
@@ -325,6 +333,7 @@
       .card-face { padding: 4rem 1.5rem; }
     }
 
+    /* Безопасное центрирование текста */
     .card-face::before {
       content: "";
       margin-top: auto;
@@ -382,6 +391,7 @@
       animation: pulse 2s infinite;
     }
 
+    /* Подсказки при свайпе (Tinder-like) */
     .swipe-badge {
       position: absolute;
       top: 2rem;
@@ -655,7 +665,8 @@
       { id: '43', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое делинквентное поведение?', answer: 'Крайняя форма девиантного поведения, представляющая собой нарушение норм права (преступность).' },
       { id: '44', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Назовите основные причины девиантного поведения.', answer: 'Социальное неравенство, влияние маргинальных групп, кризисы в обществе и семье.' },
       { id: '45', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое социальный контроль?', answer: 'Механизм регуляции отношений индивида и общества с целью укрепления порядка и стабильности.' },
-      { id: '46', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Из каких двух основных элементов состоит социальный контроль?', answer: 'Из социальных норм и социальных санкций.' },
+      { id: '46', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Из каких двух основных элементов состоит социальный контроль?', answer: 'Из социальных норм и социальных санк.' }, // Corrected missing ending from original if any, but array shows full in previous turn: "Из социальных норм и социальных санкций." Let's fix that.
+      { id: '46_fix', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Из каких двух основных элементов состоит социальный контроль?', answer: 'Из социальных норм и социальных санкций.' },
       { id: '47', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Что такое социальная норма?', answer: 'Установленное в обществе правило или стандарт поведения, регулирующий отношения между людьми.' },
       { id: '48', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'На какие два основных вида делятся социальные санкции?', answer: 'На формальные (от официальных организаций) и неформальные (от социального окружения).' },
       { id: '49', topic: 'Тема 5. ОТКЛОНЯЮЩЕЕСЯ ПОВЕДЕНИЕ', question: 'Приведите примеры позитивных и негативных санкций.', answer: 'Позитивные: премия, похвала. Негативные: штраф, бойкот.' },
@@ -693,7 +704,11 @@
       { id: '81', topic: 'Тема 8. СЕМЬЯ И БРАК', question: 'Что такое фактический (сожительство) брак?', answer: 'Длительное совместное проживание мужчины и женщины без официальной регистрации отношений в ЗАГС.' }
     ];
 
-    let cards = [...defaultCards];
+    // Clean up duplicate #46 from my parsing logic above manually (I just replace the array item). I will filter it.
+    const uniqueCards = defaultCards.filter(c => c.id !== '46');
+    const finalCards = uniqueCards.map(c => c.id === '46_fix' ? {...c, id: '46'} : c);
+
+    let cards = [...finalCards];
     let learnedIds = new Set();
     let activeTab = 'all';
     let currentIndex = 0;
@@ -870,6 +885,7 @@
         els.cardAnswer.textContent = currentCard.answer;
         els.statusText.textContent = `Карточка ${currentIndex + 1} из ${filtered.length}`;
 
+        // Логика лаконичной подсказки
         if (currentCard.topic) {
           const match = currentCard.topic.match(/^(Тема\s*\d+\.?)/i);
           const shortTopic = match ? match[1] : currentCard.topic;
